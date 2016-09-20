@@ -7,9 +7,6 @@ import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,52 +16,46 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.pingan.constant.Constant;
+import com.pingan.constant.Constant.SCORE;
 import com.pingan.dao.CustomerDao;
 import com.pingan.dao.impl.MongoDbDaoImpl;
 import com.pingan.dao.impl.MysqlDaoImpl;
 import com.pingan.domain.Ivector;
+import com.pingan.service.MongoDBService;
+import com.pingan.service.impl.MongoDBServiceImpl;
 import com.pingan.utils.IvectorUtils;
 import com.pingan.utils.PublicUtils;
 
-/**
- * 处理register请求的servlet
- * 
- * @author ning
- */
-// @WebFilter(urlPatterns = "/demo", asyncSupported = true,initParams = {
-// @WebInitParam(name = "filePath", value = "register"),
-// @WebInitParam(name = "tempFilePath", value = "registertemp"),
-// @WebInitParam(name = "Ivector", value = "ivector") })
-public class RegisterServlet extends HttpServlet {
+public class ValidationServlet2 extends HttpServlet {
 
+	/**
+	 * 
+	 */
 	private static final long serialVersionUID = 1L;
-	private CustomerDao service;
-	private File tempFile;
 
+	private File tempFile;
+	private MongoDBService service;
+
+	@Override
 	public void init(ServletConfig config) throws ServletException {
+		// TODO Auto-generated method stub
 		super.init(config);
 
-		initDir();
 		tempFile = new File(Constant.TEMPPATH);
 
 	}
 
-	private void initDir() {
-		PublicUtils.mkDir(Constant.FILEPATH);
-		PublicUtils.mkDir(Constant.VOICEPATH);
-		PublicUtils.mkDir(Constant.TEMPPATH);
-		PublicUtils.mkDir(Constant.VOICEPATH);
-	}
-
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+
 		doPost(request, response);
 	}
 
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String telnum = ""; // 注册手机号
+		System.out.println("-------------ValidationServlet run!-------------");
+		String telnum = "";
 
 		response.setContentType("text/plain");
 		// 向客户端发送响应正文
@@ -72,45 +63,34 @@ public class RegisterServlet extends HttpServlet {
 
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 
-		System.out.println("servlet------");
-
 		if (isMultipart) {
-			System.out.println("isMutipart=======true");
-
 
 			DiskFileItemFactory factory = new DiskFileItemFactory();
-			factory.setSizeThreshold(6 * 1024); // 设置缓冲区大小为6K
+			factory.setSizeThreshold(1024 * 1024); // 设置缓冲区大小为1M
 			factory.setRepository(tempFile); // 设置临时目录
 
 			// 创建一个文件上传处理器
 			ServletFileUpload upload = new ServletFileUpload(factory);
 			upload.setHeaderEncoding("utf-8");
-			upload.setSizeMax(10 * 1024 * 1024); // 允许文件的最大上传尺寸10M
+			upload.setSizeMax(8 * 1024 * 1024); // 允许文件的最大上传尺寸8M
 
 			try {
-
 				List<FileItem> items = upload.parseRequest(request);
 				for (FileItem item : items) {
 					if (item.isFormField()) {
 						// 非文件参数
 						// processFormField(item, outNet); // 处理普通的表单域
-
 						String name = item.getFieldName();
-
 						if (name.equals("tel")) {
 							telnum = item.getString();
-							System.out.println("tel:" + telnum);
-
 						}
 
 					} else {
 						// 文件
 						int code = processUploadedFile(item, outNet, telnum); // 处理上传文件
 
-						System.out.println("upload isFile----------" + code);
 						outNet.println(code);
 					}
-
 				}
 				outNet.close();
 			} catch (Exception e) {
@@ -120,95 +100,130 @@ public class RegisterServlet extends HttpServlet {
 
 	}
 
+	// private void processFormField(FileItem item, PrintWriter outNet) {
+	//
+	// String name = item.getFieldName();
+	//
+	// if (name.equals("tel")) {
+	// telnum = item.getString();
+	// }
+	//
+	// }
+
 	/**
-	 * 处理文件上传
-	 * 
 	 * @param item
 	 * @param outNet
-	 * @param dir
-	 * @return 0成功    1上传非wav文件      2文件上传失败     3注册失败
+	 * @return 0/1:评分结果：成功 2上传失败 3上传非wav文件 4评分失败 5声纹版本号不一致 6其他错误
 	 */
 	private int processUploadedFile(FileItem item, PrintWriter outNet,
 			String telnum) {
+
+		
+		// 验证用的wav文件名
 		String filename = item.getName();
 
 		try {
 			long fileSize = item.getSize();
 			if (filename.equals("") && fileSize == 0)
 				return 2;
-			String[] split = filename.split("\\.");
-			String filetype = split[split.length - 1];
-			if (!filetype.equals("wav")) {
-				return 1;
+
+			if (!PublicUtils.checkFileType("wav", filename)) {
+				return 3;
 			}
 
-			System.out.println("filename:====" + filename);
 			File uploadedFile = new File(Constant.VOICEPATH, filename);
 			item.write(uploadedFile);
 
-			int dircode = telnum.hashCode() & 0xf;
-			String ivectorHashPath = Constant.IVECTOR_PATH + "/" + dircode;
+			service = new MongoDBServiceImpl();
+			
+			String registerPath = service.QueryIvectorPath(telnum);
+			
+			if(Constant.IVECTOR_VERSION!=service.QueryIvectorVersion(telnum)){
+				
+				System.out.println("验证与注册声纹版本号不一致");
+				return 5;
+			}
+			
+			
+			// 评分结果
+			int score = KaldiTest(registerPath, Constant.VOICEPATH + "/"
+					+ filename, telnum);
 
-			File ivectorFile = new File(ivectorHashPath);
-			if (!ivectorFile.exists()) {
-
-				ivectorFile.mkdirs();
-
+			if (score == 4) {
+				return 4;
 			}
 
-			boolean isOk = KaldiRegister(Constant.VOICEPATH, ivectorHashPath,
-					filename, telnum);
+			System.out.println("validation_result=" + score);
+			
+			int threshold = 0;
+			switch (Constant.SCORE_MODE) {
+			case PLDA:
+				threshold = Constant.PLDA_THRESHOLD;
+				break;
 
-			if (isOk) {
-				Ivector c = new Ivector(telnum, ivectorHashPath + "/" + telnum
-						+ ".ivector");
-				switch (Constant.WHICH_DATABASE) {
-				case MYSQL:
-					service = new MysqlDaoImpl();
-					break;
-				case MONGODB:
-					service = new MongoDbDaoImpl();
-					break;
-				}
-				if (service.find(c.getTelnum()) != null) {
-					service.update(c);
-				} else {
-					service.register(c);
-				}
-				return 0;
+			case DOT:
+				threshold = Constant.THRESHOLD;
+				break;
+			}
+
+			System.out.println("threshold=" + threshold);
+
+			if (score > threshold) {
+				System.out.println("验证通过!");
+				return 1;
 			} else {
-				return 3;
+				System.out.println("验证失败!");
+				return 0;
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return 6;
 
-		return 2;
 	}
 
 	/**
-	 * 注册声纹
 	 * 
-	 * @param register_dir
-	 *            wav路径
-	 * @param inputpath
-	 *            特征文件输出的路径
-	 * @return
+	 * @param register_ivecter_dir
+	 *            注册的特征文件的路径
+	 * @param test_dir
+	 *            验证的wav的文件路径
+	 * @return 评分
 	 */
-	public boolean KaldiRegister(String register_dir, String inputpath,
-			String filename, String telnum) {
+	public int KaldiTest(String register_ivecter_dir, String test_dir,
+			String telnum) {
 
-		// xxx/register/filename.wav
-		String filepath = register_dir + "/" + filename;
-
-		List<String> ivecter_list = IvectorUtils.KaldiToIvecter(filepath,
+		double result = 4;
+		List<String> ivecter_list = IvectorUtils.KaldiToIvecter(test_dir,
 				Constant.TOOLPATH);
 
-		// 删除注册用的声纹文件.
+		PublicUtils.deletefile(test_dir);
+
+		String filename = telnum + "_test.ivector";
+
+		if (null == ivecter_list && ivecter_list.size() == 0) {
+			return 4;
+		}
+
+		IvectorUtils.ListToFile(ivecter_list, Constant.VOICEPATH, filename);
+		String filepath = Constant.VOICEPATH + "/" + filename;
+
+		switch (Constant.SCORE_MODE) {
+		case PLDA:
+			result = IvectorUtils.KaldiPLDAscore(register_ivecter_dir,
+					filepath, Constant.TOOLPATH);
+			break;
+
+		case DOT:
+			result = IvectorUtils.Kaldiscore(register_ivecter_dir, filepath,
+					Constant.TOOLPATH);
+			break;
+
+		}
+
 		PublicUtils.deletefile(filepath);
 
-		return IvectorUtils.ListToFile(ivecter_list, inputpath, telnum
-				+ ".ivector");
+		return (int) result;
 	}
-
 }

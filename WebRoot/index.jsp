@@ -3,8 +3,7 @@
 <html>
 <head>
 <title>Upload</title>
-<script type="text/javascript"
-	src="/PA/js/ajex.js"></script>
+<script type="text/javascript" src="/PA/js/ajex.js"></script>
 <script type="text/javascript">
 	document.getElementById("tel").onblur = function() {
 		if (this.value == "") {
@@ -50,20 +49,19 @@
 					<td>声纹注册</td>
 				</tr>
 				<tr>
-					<td><div align="left">手机号：</div>
+					<td><div align="left">手机号：</div></td>
+					<td><input type="text" id="tel" name="tel" size="20" />
 					</td>
-					<td><input type="text" id="tel" name="tel" size="20" /></td>
 				</tr>
 				<tr>
-					<td><div align="left" size="20">音频文件:</div>
+					<td><div align="left" size="20">音频文件:</div></td>
+					<td><input type="file" name="file" size="20" />
 					</td>
-					<td><input type="file" name="file" size="20" /></td>
 				</tr>
 				<tr>
 					<td><input type="submit" name="submit" value="register">
 					</td>
-					<td><input type="reset" name="reset" value="reset">
-					</td>
+					<td><input type="reset" name="reset" value="reset"></td>
 				</tr>
 			</table>
 		</form>
@@ -75,27 +73,26 @@
 					<td>声纹验证</td>
 				</tr>
 				<tr>
-					<td><div align="left">手机号：</div>
-					</td>
+					<td><div align="left">手机号：</div></td>
 					<td><input type="text" size="20" name="tel" id="tel" /> <span
-						id="msg"></span></td>
+						id="msg"></span>
+					</td>
 				</tr>
 
 				<tr>
-					<td><div align="left">音频文件:</div>
+					<td><div align="left">音频文件:</div></td>
+					<td><input type="file" name="file1" size="20" />
 					</td>
-					<td><input type="file" name="file1" size="20" /></td>
 				</tr>
 				<tr>
 					<td><input type="submit" name="submit" value="validation">
 					</td>
-					<td><input type="reset" name="reset" value="reset">
-					</td>
+					<td><input type="reset" name="reset" value="reset"></td>
 				</tr>
 			</table>
 		</form>
-		
-		
+
+
 		<form name="uploadForm" method="POST" enctype="MULTIPART/FORM-DATA"
 			action="${pageContext.request.contextPath}/test">
 			<table>
@@ -103,20 +100,72 @@
 					<td>异步测试</td>
 				</tr>
 				<tr>
-					<td><div align="left">手机号：</div>
+					<td><div align="left">手机号：</div></td>
+					<td><input type="text" id="tel" name="tel" size="20" />
 					</td>
-					<td><input type="text" id="tel" name="tel" size="20" /></td>
 				</tr>
 				<tr>
-					<td><div align="left" size="20">音频文件:</div>
+					<td><div align="left" size="20">音频文件:</div></td>
+					<td><input type="file" name="file" size="20" />
 					</td>
-					<td><input type="file" name="file" size="20" /></td>
 				</tr>
 				<tr>
-					<td><input type="submit" name="submit" value="test">
+					<td><input type="submit" name="submit" value="test"></td>
+					<td><input type="reset" name="reset" value="reset"></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<hr />
+
+	<div align="center">
+		<h3>带版本号声纹注册验证</h3>
+		<form name="uploadForm" method="POST" enctype="MULTIPART/FORM-DATA"
+			action="${pageContext.request.contextPath}/registerV">
+			<table>
+				<tr>
+					<td>声纹注册</td>
+				</tr>
+				<tr>
+					<td><div align="left">手机号：</div></td>
+					<td><input type="text" id="tel" name="tel" size="20" />
 					</td>
-					<td><input type="reset" name="reset" value="reset">
+				</tr>
+				<tr>
+					<td><div align="left" size="20">音频文件:</div></td>
+					<td><input type="file" name="file" size="20" />
 					</td>
+				</tr>
+				<tr>
+					<td><input type="submit" name="submit" value="register">
+					</td>
+					<td><input type="reset" name="reset" value="reset"></td>
+				</tr>
+			</table>
+		</form>
+
+		<form name="uploadForm" method="POST" enctype="MULTIPART/FORM-DATA"
+			action="${pageContext.request.contextPath}/validationV">
+			<table>
+				<tr>
+					<td>声纹验证</td>
+				</tr>
+				<tr>
+					<td><div align="left">手机号：</div></td>
+					<td><input type="text" size="20" name="tel" id="tel" /> <span
+						id="msg"></span>
+					</td>
+				</tr>
+
+				<tr>
+					<td><div align="left">音频文件:</div></td>
+					<td><input type="file" name="file1" size="20" />
+					</td>
+				</tr>
+				<tr>
+					<td><input type="submit" name="submit" value="validation">
+					</td>
+					<td><input type="reset" name="reset" value="reset"></td>
 				</tr>
 			</table>
 		</form>

@@ -36,6 +36,19 @@ public interface Constant {
 		MYSQL, MONGODB
 	}
 
+	/**
+	 * MongoDB IP
+	 */
+	public static final String MONGODB_IP="localhost";
+	/**
+	 * MongoDB 端口号
+	 */
+	public static final int MONGODB_PORT= 27017;
+	
+	/**
+	 * MongoDB 数据库名
+	 */
+	public static final String MONGODB_DB_NAME = "pingan101";
 	/*
 	 * 点积阈值
 	 */
@@ -49,10 +62,17 @@ public interface Constant {
 	/**
 	 * 评分方式
 	 */
-	public static final SCORE SCORE_MODE = SCORE.PLDA;
+	public static final SCORE SCORE_MODE = SCORE.DOT;
 
 	public enum SCORE {
 		DOT, PLDA
 	}
+	
+	/**
+	 * 当前使用的特征提取的版本号
+	 */
+	public static final String IVECTOR_VERSION = "1.0";
+	
+	
 
 }

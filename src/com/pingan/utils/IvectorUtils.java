@@ -57,7 +57,8 @@ public class IvectorUtils {
 			String toolpath) {
 		Process process = null;
 		List<String> processList = new ArrayList<String>();
-		String commond = toolpath + "/wav_score_dot_product " + registerdir + " " + testdir;
+		String commond = toolpath + "/wav_score_dot_product " + registerdir
+				+ " " + testdir;
 		try {
 			process = Runtime.getRuntime().exec(commond);
 			process.waitFor();
@@ -69,11 +70,11 @@ public class IvectorUtils {
 			}
 			input.close();
 
-			String str = processList.get(0).trim();
-
 			if (processList != null && processList.size() > 0) {
+				String str = processList.get(0).trim();
 				return Double.parseDouble(str);
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

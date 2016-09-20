@@ -14,11 +14,22 @@
 		<servlet-class>com.pingan.servlet.ValidationServlet</servlet-class>
 		<async-supported>true</async-supported>
 	</servlet>
+
+	<servlet>
+		<servlet-name>RegisterServlet2</servlet-name>
+		<servlet-class>com.pingan.servlet.RegisterServlet2</servlet-class>
+		<async-supported>true</async-supported>
+	</servlet>
+	<servlet>
+		<servlet-name>ValidationServlet2</servlet-name>
+		<servlet-class>com.pingan.servlet.ValidationServlet2</servlet-class>
+		<async-supported>true</async-supported>
+	</servlet>
 	<servlet>
 		<servlet-name>AjexServlet</servlet-name>
 		<servlet-class>com.pingan.servlet.AjexServlet</servlet-class>
 	</servlet>
-	
+
 	<servlet>
 		<servlet-name>TestServlet</servlet-name>
 		<servlet-class>com.pingan.servlet.TestServlet</servlet-class>
@@ -26,13 +37,22 @@
 	</servlet>
 
 
-	<servlet-mapping>	
+	<servlet-mapping>
 		<servlet-name>RegisterServlet</servlet-name>
 		<url-pattern>/register</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>ValidationServlet</servlet-name>
 		<url-pattern>/validation</url-pattern>
+	</servlet-mapping>
+	
+		<servlet-mapping>
+		<servlet-name>RegisterServlet2</servlet-name>
+		<url-pattern>/registerV</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>ValidationServlet2</servlet-name>
+		<url-pattern>/validationV</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>AjexServlet</servlet-name>

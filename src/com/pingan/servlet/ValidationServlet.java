@@ -224,9 +224,6 @@ public class ValidationServlet extends HttpServlet {
 
 		}
 
-		result = IvectorUtils.KaldiPLDAscore(register_ivecter_dir, filepath,
-				Constant.TOOLPATH);
-
 		PublicUtils.deletefile(filepath);
 
 		return (int) result;

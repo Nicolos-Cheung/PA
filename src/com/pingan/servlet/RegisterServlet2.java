@@ -23,6 +23,9 @@ import com.pingan.dao.CustomerDao;
 import com.pingan.dao.impl.MongoDbDaoImpl;
 import com.pingan.dao.impl.MysqlDaoImpl;
 import com.pingan.domain.Ivector;
+import com.pingan.domain.IvectorV;
+import com.pingan.service.MongoDBService;
+import com.pingan.service.impl.MongoDBServiceImpl;
 import com.pingan.utils.IvectorUtils;
 import com.pingan.utils.PublicUtils;
 
@@ -31,14 +34,10 @@ import com.pingan.utils.PublicUtils;
  * 
  * @author ning
  */
-// @WebFilter(urlPatterns = "/demo", asyncSupported = true,initParams = {
-// @WebInitParam(name = "filePath", value = "register"),
-// @WebInitParam(name = "tempFilePath", value = "registertemp"),
-// @WebInitParam(name = "Ivector", value = "ivector") })
-public class RegisterServlet extends HttpServlet {
+public class RegisterServlet2 extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private CustomerDao service;
+	private MongoDBService service;
 	private File tempFile;
 
 	public void init(ServletConfig config) throws ServletException {
@@ -53,7 +52,6 @@ public class RegisterServlet extends HttpServlet {
 		PublicUtils.mkDir(Constant.FILEPATH);
 		PublicUtils.mkDir(Constant.VOICEPATH);
 		PublicUtils.mkDir(Constant.TEMPPATH);
-		PublicUtils.mkDir(Constant.VOICEPATH);
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -76,7 +74,6 @@ public class RegisterServlet extends HttpServlet {
 
 		if (isMultipart) {
 			System.out.println("isMutipart=======true");
-
 
 			DiskFileItemFactory factory = new DiskFileItemFactory();
 			factory.setSizeThreshold(6 * 1024); // 设置缓冲区大小为6K
@@ -126,7 +123,7 @@ public class RegisterServlet extends HttpServlet {
 	 * @param item
 	 * @param outNet
 	 * @param dir
-	 * @return 0成功    1上传非wav文件      2文件上传失败     3注册失败
+	 * @return 0成功 1上传非wav文件 2文件上传失败 3注册失败
 	 */
 	private int processUploadedFile(FileItem item, PrintWriter outNet,
 			String telnum) {
@@ -141,39 +138,31 @@ public class RegisterServlet extends HttpServlet {
 			if (!filetype.equals("wav")) {
 				return 1;
 			}
+			int dircode = telnum.hashCode() & 0xf;
 
 			System.out.println("filename:====" + filename);
-			File uploadedFile = new File(Constant.VOICEPATH, filename);
+
+			String voicehashpath = Constant.VOICEPATH + "/" + dircode;
+
+			File uploadedFile = new File(voicehashpath, filename);
 			item.write(uploadedFile);
 
-			int dircode = telnum.hashCode() & 0xf;
 			String ivectorHashPath = Constant.IVECTOR_PATH + "/" + dircode;
 
-			File ivectorFile = new File(ivectorHashPath);
-			if (!ivectorFile.exists()) {
+			PublicUtils.mkDir(ivectorHashPath);
 
-				ivectorFile.mkdirs();
-
-			}
-
-			boolean isOk = KaldiRegister(Constant.VOICEPATH, ivectorHashPath,
+			boolean isOk = KaldiRegister(voicehashpath, ivectorHashPath,
 					filename, telnum);
 
 			if (isOk) {
-				Ivector c = new Ivector(telnum, ivectorHashPath + "/" + telnum
-						+ ".ivector");
-				switch (Constant.WHICH_DATABASE) {
-				case MYSQL:
-					service = new MysqlDaoImpl();
-					break;
-				case MONGODB:
-					service = new MongoDbDaoImpl();
-					break;
-				}
-				if (service.find(c.getTelnum()) != null) {
-					service.update(c);
+				IvectorV iv = new IvectorV(telnum, ivectorHashPath + "/"
+						+ telnum + ".ivector", Constant.IVECTOR_VERSION,
+						voicehashpath + "/" + filename);
+				service = new MongoDBServiceImpl();
+				if (service.QueryIvectorPath(iv.getTelnum()) != null) {
+					service.update(iv);
 				} else {
-					service.register(c);
+					service.register(iv);
 				}
 				return 0;
 			} else {
@@ -182,7 +171,6 @@ public class RegisterServlet extends HttpServlet {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		return 2;
 	}
 
@@ -205,7 +193,7 @@ public class RegisterServlet extends HttpServlet {
 				Constant.TOOLPATH);
 
 		// 删除注册用的声纹文件.
-		PublicUtils.deletefile(filepath);
+		// PublicUtils.deletefile(filepath);
 
 		return IvectorUtils.ListToFile(ivecter_list, inputpath, telnum
 				+ ".ivector");
