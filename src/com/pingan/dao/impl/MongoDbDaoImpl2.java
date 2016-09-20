@@ -70,8 +70,8 @@ public class MongoDbDaoImpl2 implements MongoDBDao {
 				DBObject ob = dbCursor.next();
 				iv.setTelnum((ob.get("telnum").toString().trim()));
 				iv.setUrl(ob.get("url").toString().trim());
-				iv.setTelnum((ob.get("version").toString().trim()));
-				iv.setTelnum((ob.get("wavpath").toString().trim()));
+				iv.setVersion((ob.get("version").toString().trim()));
+				iv.setWavPath((ob.get("wavpath").toString().trim()));
 			}
 			return iv;
 

@@ -149,13 +149,8 @@ public class RegisterServlet extends HttpServlet {
 			int dircode = telnum.hashCode() & 0xf;
 			String ivectorHashPath = Constant.IVECTOR_PATH + "/" + dircode;
 
-			File ivectorFile = new File(ivectorHashPath);
-			if (!ivectorFile.exists()) {
-
-				ivectorFile.mkdirs();
-
-			}
-
+			PublicUtils.mkDir(ivectorHashPath);
+			
 			boolean isOk = KaldiRegister(Constant.VOICEPATH, ivectorHashPath,
 					filename, telnum);
 

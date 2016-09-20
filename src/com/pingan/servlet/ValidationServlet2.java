@@ -16,11 +16,6 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.pingan.constant.Constant;
-import com.pingan.constant.Constant.SCORE;
-import com.pingan.dao.CustomerDao;
-import com.pingan.dao.impl.MongoDbDaoImpl;
-import com.pingan.dao.impl.MysqlDaoImpl;
-import com.pingan.domain.Ivector;
 import com.pingan.service.MongoDBService;
 import com.pingan.service.impl.MongoDBServiceImpl;
 import com.pingan.utils.IvectorUtils;
@@ -138,9 +133,10 @@ public class ValidationServlet2 extends HttpServlet {
 			
 			String registerPath = service.QueryIvectorPath(telnum);
 			
-			if(Constant.IVECTOR_VERSION!=service.QueryIvectorVersion(telnum)){
+			
+			if(!(Constant.IVECTOR_VERSION).equals(service.QueryIvectorVersion(telnum))){
 				
-				System.out.println("验证与注册声纹版本号不一致");
+				System.out.println("version number is not consistent");
 				return 5;
 			}
 			

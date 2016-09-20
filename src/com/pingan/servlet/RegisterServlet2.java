@@ -138,16 +138,20 @@ public class RegisterServlet2 extends HttpServlet {
 			if (!filetype.equals("wav")) {
 				return 1;
 			}
-			int dircode = telnum.hashCode() & 0xf;
-
+			
+			int firstdircode = telnum.hashCode() & 0xf;
+			int secondircode = (telnum.hashCode()>>4) & 0xf;
+			
 			System.out.println("filename:====" + filename);
 
-			String voicehashpath = Constant.VOICEPATH + "/" + dircode;
+			String voicehashpath = Constant.VOICEPATH + "/" + firstdircode+"/"+secondircode;
 
+			PublicUtils.mkDir(voicehashpath);
 			File uploadedFile = new File(voicehashpath, filename);
+			
 			item.write(uploadedFile);
 
-			String ivectorHashPath = Constant.IVECTOR_PATH + "/" + dircode;
+			String ivectorHashPath = Constant.IVECTOR_PATH + "/" +firstdircode+"/"+secondircode;
 
 			PublicUtils.mkDir(ivectorHashPath);
 

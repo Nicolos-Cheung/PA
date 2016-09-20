@@ -15,6 +15,12 @@ public class IvectorV {
 		this.wavpath = voicePath;
 	}
 
+	@Override
+	public String toString() {
+		return "IvectorV [telnum=" + telnum + ", ivectorPath=" + ivectorPath
+				+ ", version=" + version + ", wavpath=" + wavpath + "]";
+	}
+
 	public IvectorV() {
 	}
 
@@ -45,6 +51,7 @@ public class IvectorV {
 	public String getUrl() {
 		return ivectorPath;
 	}
+
 	public void setUrl(String url) {
 		this.ivectorPath = url;
 	}
@@ -53,11 +60,9 @@ public class IvectorV {
 
 		return ivectorPath;
 	}
-	
-	public void setIvectorPath(String ivectorPath){
+
+	public void setIvectorPath(String ivectorPath) {
 		this.ivectorPath = ivectorPath;
 	}
-
-
 
 }
