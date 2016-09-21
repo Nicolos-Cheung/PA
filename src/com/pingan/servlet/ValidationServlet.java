@@ -171,7 +171,7 @@ public class ValidationServlet extends HttpServlet {
 			}
 			
 			System.out.println("threshold=" + threshold);
-
+			System.out.println("score=" + score);
 			if (score > threshold) {
 				return 1;
 			} else {

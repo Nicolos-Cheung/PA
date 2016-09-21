@@ -21,7 +21,7 @@ import com.pingan.service.impl.MongoDBServiceImpl;
 import com.pingan.utils.IvectorUtils;
 import com.pingan.utils.PublicUtils;
 
-public class ValidationServlet2 extends HttpServlet {
+public class PCMValidationServlet extends HttpServlet {
 
 	/**
 	 * 

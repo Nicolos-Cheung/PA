@@ -164,4 +164,28 @@ public class IvectorUtils {
 		return false;
 
 	}
+
+	/**
+	 * 
+	 * @param list
+	 * @param path
+	 *            特征值存放的路径
+	 * @param filename
+	 *            特征值文件名
+	 * @return
+	 */
+	public static String ListToString(List<String> list) {
+
+		StringBuffer bf = new StringBuffer();
+		if (list.size() == 0) {
+			return "";
+		}
+
+		Iterator<String> iter = list.iterator();
+		while (iter.hasNext()) {
+			bf.append(iter.next());
+		}
+
+		return bf.toString();
+	}
 }

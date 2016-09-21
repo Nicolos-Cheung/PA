@@ -23,6 +23,6 @@ public class PropertiesUtils {
 
 	public static String getProp(String key) {
 
-		return prop.getProperty("key", "");
+		return prop.getProperty(key, "");
 	}
 }

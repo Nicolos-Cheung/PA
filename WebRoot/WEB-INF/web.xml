@@ -25,6 +25,18 @@
 		<servlet-class>com.pingan.servlet.ValidationServlet2</servlet-class>
 		<async-supported>true</async-supported>
 	</servlet>
+
+
+	<servlet>
+		<servlet-name>PCMRegisterServlet</servlet-name>
+		<servlet-class>com.pingan.servlet.PCMRegisterServlet</servlet-class>
+		<async-supported>true</async-supported>
+	</servlet>
+	<servlet>
+		<servlet-name>PCMValidationServlet</servlet-name>
+		<servlet-class>com.pingan.servlet.PCMValidationServlet</servlet-class>
+		<async-supported>true</async-supported>
+	</servlet>
 	<servlet>
 		<servlet-name>AjexServlet</servlet-name>
 		<servlet-class>com.pingan.servlet.AjexServlet</servlet-class>
@@ -45,14 +57,23 @@
 		<servlet-name>ValidationServlet</servlet-name>
 		<url-pattern>/validation</url-pattern>
 	</servlet-mapping>
-	
-		<servlet-mapping>
+
+	<servlet-mapping>
 		<servlet-name>RegisterServlet2</servlet-name>
 		<url-pattern>/registerV</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>ValidationServlet2</servlet-name>
 		<url-pattern>/validationV</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>PCMRegisterServlet</servlet-name>
+		<url-pattern>/pcm_register</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>PCMValidationServlet</servlet-name>
+		<url-pattern>/pcm_validation</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>AjexServlet</servlet-name>

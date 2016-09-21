@@ -13,9 +13,19 @@ public interface Constant {
 	public static final String FILEPATH = "/home/pingandl/javaserver/server_data";
 
 	/**
-	 * 上传语音文件的目录
+	 * 上传注册语音文件的目录
 	 */
 	public static final String VOICEPATH = FILEPATH + "/voice";
+
+	/**
+	 * 上传验证语音文件的目录
+	 */
+	public static final String VALIDATION_VOICEPATH = FILEPATH + "/voice";
+
+	/**
+	 * 是否保留验证音频
+	 */
+	public static boolean IS_RETAIN_VALIDATION_VOICE = false;
 
 	/**
 	 * UpLoad临时文件目录
@@ -27,7 +37,7 @@ public interface Constant {
 	 */
 	public static final String IVECTOR_PATH = FILEPATH + "/ivector";
 
-	/*
+	/**
 	 * 使用的数据库类型：
 	 */
 	public static final DB WHICH_DATABASE = DB.MYSQL;
@@ -39,22 +49,23 @@ public interface Constant {
 	/**
 	 * MongoDB IP
 	 */
-	public static final String MONGODB_IP="localhost";
+	public static final String MONGODB_IP = "localhost";
 	/**
 	 * MongoDB 端口号
 	 */
-	public static final int MONGODB_PORT= 27017;
-	
+	public static final int MONGODB_PORT = 27017;
+
 	/**
 	 * MongoDB 数据库名
 	 */
 	public static final String MONGODB_DB_NAME = "pingan101";
-	/*
+	
+	/**
 	 * 点积阈值
 	 */
 	public static final int THRESHOLD = 100;
 
-	/*
+	/**
 	 * PLDA阈值
 	 */
 	public static final int PLDA_THRESHOLD = 0;
@@ -67,12 +78,10 @@ public interface Constant {
 	public enum SCORE {
 		DOT, PLDA
 	}
-	
+
 	/**
 	 * 当前使用的特征提取的版本号
 	 */
 	public static final String IVECTOR_VERSION = "1.0";
-	
-	
 
 }
