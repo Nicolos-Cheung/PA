@@ -18,6 +18,16 @@ public interface Constant {
 	public static final String VOICEPATH = FILEPATH + "/voice";
 
 	/**
+	 * PCM上传注册语音文件的目录
+	 */
+	public static final String PCMVOICEPATH = FILEPATH + "/pcm2wav";
+
+	/**
+	 * 是否保存PCM数据
+	 */
+	public static final boolean IS_RETAIN_PCM_DATA = true;
+
+	/**
 	 * 上传验证语音文件的目录
 	 */
 	public static final String VALIDATION_VOICEPATH = FILEPATH + "/voice";
@@ -25,7 +35,7 @@ public interface Constant {
 	/**
 	 * 是否保留验证音频
 	 */
-	public static boolean IS_RETAIN_VALIDATION_VOICE = false;
+	public static final boolean IS_RETAIN_VALIDATION_VOICE = false;
 
 	/**
 	 * UpLoad临时文件目录
@@ -59,7 +69,7 @@ public interface Constant {
 	 * MongoDB 数据库名
 	 */
 	public static final String MONGODB_DB_NAME = "pingan101";
-	
+
 	/**
 	 * 点积阈值
 	 */

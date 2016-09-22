@@ -202,8 +202,9 @@ public class RegisterServlet extends HttpServlet {
 		// 删除注册用的声纹文件.
 		PublicUtils.deletefile(filepath);
 
-		return IvectorUtils.ListToFile(ivecter_list, inputpath, telnum
+		boolean isok = IvectorUtils.ListToFile(ivecter_list, inputpath, telnum
 				+ ".ivector");
+		return isok;
 	}
 
 }

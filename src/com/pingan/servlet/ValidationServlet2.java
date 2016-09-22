@@ -205,13 +205,10 @@ public class ValidationServlet2 extends HttpServlet {
 			result = IvectorUtils.Kaldiscore(register_ivecter_dir, filepath,
 					Constant.TOOLPATH);
 			break;
-
 		}
-
 		if (!Constant.IS_RETAIN_VALIDATION_VOICE) {
 			PublicUtils.deletefile(filepath);
 		}
-
 		return (int) result;
 	}
 }

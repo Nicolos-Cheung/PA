@@ -3,6 +3,7 @@ package com.pingan.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.servlet.ServletConfig;
@@ -19,6 +20,7 @@ import com.pingan.constant.Constant;
 import com.pingan.service.MongoDBService;
 import com.pingan.service.impl.MongoDBServiceImpl;
 import com.pingan.utils.IvectorUtils;
+import com.pingan.utils.PCMUtil;
 import com.pingan.utils.PublicUtils;
 
 public class PCMValidationServlet extends HttpServlet {
@@ -33,9 +35,8 @@ public class PCMValidationServlet extends HttpServlet {
 
 	@Override
 	public void init(ServletConfig config) throws ServletException {
-		// TODO Auto-generated method stub
-		super.init(config);
 
+		super.init(config);
 		tempFile = new File(Constant.TEMPPATH);
 
 	}
@@ -49,8 +50,11 @@ public class PCMValidationServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		System.out.println("-------------ValidationServlet run!-------------");
-		String telnum = "";
+		System.out
+				.println("-------------PCMValidationServlet run!-------------");
+		String user_id = "";
+		String regivectorPath = "";
+		String pcmpath = "";
 
 		response.setContentType("text/plain");
 		// 向客户端发送响应正文
@@ -68,7 +72,7 @@ public class PCMValidationServlet extends HttpServlet {
 			ServletFileUpload upload = new ServletFileUpload(factory);
 			upload.setHeaderEncoding("utf-8");
 			upload.setSizeMax(8 * 1024 * 1024); // 允许文件的最大上传尺寸8M
-
+			List<String> filepathlist = new ArrayList<String>();
 			try {
 				List<FileItem> items = upload.parseRequest(request);
 				for (FileItem item : items) {
@@ -76,95 +80,83 @@ public class PCMValidationServlet extends HttpServlet {
 						// 非文件参数
 						// processFormField(item, outNet); // 处理普通的表单域
 						String name = item.getFieldName();
-						if (name.equals("tel")) {
-							telnum = item.getString();
+						if (name.equals("user_id")) {
+							user_id = item.getString();
 						}
 
 					} else {
 						// 文件
-						int code = processUploadedFile(item, outNet, telnum); // 处理上传文件
+						if (item.getFieldName().equals("ivector")) {
+							regivectorPath = processUploadedFile(item,
+									Constant.VALIDATION_VOICEPATH);
+							System.out.println("ivectorPath"+regivectorPath);
+						} else if (item.getFieldName().equals("pcm")) {
+							pcmpath = processUploadedFile(item,
+									Constant.VALIDATION_VOICEPATH);
+							System.out.println("pcmpath"+pcmpath);
+						}
 
-						outNet.println(code);
 					}
 				}
-				outNet.close();
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+
+			// pcm转wav
+			File wavfile = new File(Constant.VALIDATION_VOICEPATH, user_id + ".wav");
+
+			System.out.println("WAVFILE:" + wavfile.getAbsolutePath());
+			
+			System.out.println(pcmpath);
+			PCMUtil.convertAudioFiles(pcmpath, wavfile.getAbsolutePath());
+			
+			
+//			注册：
+			List<String> ivectorList = IvectorUtils.KaldiToIvecter(wavfile.getAbsolutePath(), Constant.TOOLPATH);
+			
+			//特征文件写入本地
+			String testivectorpath  = IvectorUtils.ListToFile_Return_FilePath(ivectorList, Constant.VALIDATION_VOICEPATH, user_id+".ivector");
+			
+			// 验证操作
+			double score = KaldiTest(regivectorPath, testivectorpath);
+			
+
+			outNet.println(user_id + ":" + score);
+			outNet.close();
+			
+//			PublicUtils.deletefile(Constant.VALIDATION_VOICEPATH+".ivector");
+//			PublicUtils.deletefile(pcmpath);
+//			PublicUtils.deletefile(wavfile);
+			
 		}
 
 	}
 
 	/**
+	 * 
 	 * @param item
-	 * @param outNet
-	 * @return 0/1:评分结果：成功 2上传失败 3上传非wav文件 4评分失败 5声纹版本号不一致 6其他错误
+	 * @param fileRootPath
+	 *            存放路径的分目录
+	 * @return filepath 返回文件的路径
 	 */
-	private int processUploadedFile(FileItem item, PrintWriter outNet,
-			String telnum) {
+	private String processUploadedFile(FileItem item, String fileRootPath) {
 
-		// 验证用的wav文件名
+		// 获取文件名
 		String filename = item.getName();
 
 		try {
-			long fileSize = item.getSize();
-			if (filename.equals("") && fileSize == 0)
-				return 2;
-
-			if (!PublicUtils.checkFileType("wav", filename)) {
-				return 3;
-			}
-
-			File uploadedFile = new File(Constant.VALIDATION_VOICEPATH,
-					filename);
+			
+			File uploadedFile = new File(fileRootPath, filename);
+			
 			item.write(uploadedFile);
-
-			service = new MongoDBServiceImpl();
-
-			String registerPath = service.QueryIvectorPath(telnum);
-
-			if (!(Constant.IVECTOR_VERSION).equals(service
-					.QueryIvectorVersion(telnum))) {
-
-				System.out.println("version number is not consistent");
-				return 5;
-			}
-
-			// 评分结果
-			int score = KaldiTest(registerPath, Constant.VALIDATION_VOICEPATH
-					+ "/" + filename, telnum);
-
-			if (score == 4) {
-				return 4;
-			}
-
-			System.out.println("validation_result=" + score);
-
-			int threshold = 0;
-			switch (Constant.SCORE_MODE) {
-			case PLDA:
-				threshold = Constant.PLDA_THRESHOLD;
-				break;
-
-			case DOT:
-				threshold = Constant.THRESHOLD;
-				break;
-			}
-
-			System.out.println("threshold=" + threshold);
-
-			if (score > threshold) {
-				System.out.println("验证通过!");
-				return 1;
-			} else {
-				System.out.println("验证失败!");
-				return 0;
-			}
+			
+			return fileRootPath + "/" + filename;
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return 6;
+		return null;
 
 	}
 
@@ -172,46 +164,26 @@ public class PCMValidationServlet extends HttpServlet {
 	 * 
 	 * @param register_ivecter_dir
 	 *            注册的特征文件的路径
-	 * @param test_wav_dir
+	 * @param test_ivector_dir
 	 *            验证的wav的文件路径
 	 * @return 评分
 	 */
-	public int KaldiTest(String register_ivecter_dir, String test_wav_dir,
-			String telnum) {
+	public double KaldiTest(String register_ivecter_dir, String test_ivector_dir) {
 
-		double result = 4;
-		List<String> ivecter_list = IvectorUtils.KaldiToIvecter(test_wav_dir,
-				Constant.TOOLPATH);
-
-		PublicUtils.deletefile(test_wav_dir);
-
-		String filename = telnum + "_test.ivector";
-
-		if (null == ivecter_list && ivecter_list.size() == 0) {
-			return 4;
-		}
-
-		IvectorUtils.ListToFile(ivecter_list, Constant.VALIDATION_VOICEPATH,
-				filename);
-		String filepath = Constant.VALIDATION_VOICEPATH + "/" + filename;
+		double result = -999;
 
 		switch (Constant.SCORE_MODE) {
 		case PLDA:
 			result = IvectorUtils.KaldiPLDAscore(register_ivecter_dir,
-					filepath, Constant.TOOLPATH);
+					test_ivector_dir, Constant.TOOLPATH);
 			break;
 
 		case DOT:
-			result = IvectorUtils.Kaldiscore(register_ivecter_dir, filepath,
-					Constant.TOOLPATH);
+			result = IvectorUtils.Kaldiscore(register_ivecter_dir,
+					test_ivector_dir, Constant.TOOLPATH);
 			break;
-
 		}
-
-		if (!Constant.IS_RETAIN_VALIDATION_VOICE) {
-			PublicUtils.deletefile(filepath);
-		}
-
-		return (int) result;
+		System.out.println("result="+result);
+		return result;
 	}
 }

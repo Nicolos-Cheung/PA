@@ -2,21 +2,21 @@ package com.pingan.domain;
 
 public class PCMResponseObject {
 
-	private String customer_id;
+	private String user_id;
 	private String ivector;
 
-	public PCMResponseObject(String customer_id, String ivector) {
+	public PCMResponseObject(String user_id, String ivector) {
 		super();
-		this.customer_id = customer_id;
+		this.user_id = user_id;
 		this.ivector = ivector;
 	}
 
-	public String getCustomer_id() {
-		return customer_id;
+	public String getUserId() {
+		return user_id;
 	}
 
-	public void setCustomer_id(String customer_id) {
-		this.customer_id = customer_id;
+	public void setUserId(String user_id) {
+		this.user_id = user_id;
 	}
 
 	public String getIvector() {

@@ -126,6 +126,50 @@ public class IvectorUtils {
 	 *            特征值文件名
 	 * @return
 	 */
+	public static String ListToFile_Return_FilePath(List<String> list, String path,
+			String filename) {
+
+		StringBuffer bf = new StringBuffer();
+
+		if (list.size() == 0) {
+			return "";
+		}
+
+		Iterator<String> iter = list.iterator();
+		while (iter.hasNext()) {
+			bf.append(iter.next());
+		}
+		try {
+			FileOutputStream fos = new FileOutputStream(
+					new File(path, filename));
+
+			OutputStreamWriter osw = new OutputStreamWriter(fos);
+
+			osw.write(bf.toString());
+
+			osw.close();
+			fos.close();
+
+			return path+"/"+filename+".ivector";
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+	/**
+	 * 
+	 * @param list
+	 * @param path
+	 *            特征值存放的路径
+	 * @param filename
+	 *            特征值文件名
+	 * @return
+	 */
 	public static boolean ListToFile(List<String> list, String path,
 			String filename) {
 
@@ -150,9 +194,6 @@ public class IvectorUtils {
 			osw.close();
 			fos.close();
 
-			// Ivector c = new Ivector(path, filename);
-			// service.register(c);
-
 			return true;
 
 		} catch (FileNotFoundException e) {
@@ -164,6 +205,7 @@ public class IvectorUtils {
 		return false;
 
 	}
+	
 
 	/**
 	 * 

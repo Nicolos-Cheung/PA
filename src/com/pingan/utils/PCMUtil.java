@@ -7,21 +7,36 @@ import java.io.IOException;
 
 public class PCMUtil {
 
-	
-	public static void convertAudioFiles(String src, String target) throws Exception {
+	public static void convertAudioFiles(String src, String target) {
 
-		FileInputStream fis = new FileInputStream(src);
-		FileOutputStream fos = new FileOutputStream(target);
-
-		// 计算长度
-		byte[] buf = new byte[1024 * 4];
-		int size = fis.read(buf);
+		FileInputStream fis = null;
+		FileOutputStream fos = null;
+		byte[] buf = null;
+		int size;
 		int PCMSize = 0;
-		while (size != -1) {
-			PCMSize += size;
+
+		try {
+			fis = new FileInputStream(src);
+			fos = new FileOutputStream(target);
+			// 计算长度
+			buf = new byte[1024 * 4];
 			size = fis.read(buf);
+
+			while (size != -1) {
+				PCMSize += size;
+				size = fis.read(buf);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if (fis != null) {
+					fis.close();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		fis.close();
 
 		// 填入参数，比特率等等。这里用的是16位单声道 8000 hz
 		WaveHeader header = new WaveHeader();
@@ -36,27 +51,41 @@ public class PCMUtil {
 		header.AvgBytesPerSec = header.BlockAlign * header.SamplesPerSec;
 		header.DataHdrLeth = PCMSize;
 
-		byte[] h = header.getHeader();
+		try {
+			byte[] h = header.getHeader();
 
-		assert h.length == 44; // WAV标准，头部应该是44字节
-		// write header
-		fos.write(h, 0, h.length);
-		// write data stream
-		fis = new FileInputStream(src);
-		size = fis.read(buf);
-		while (size != -1) {
-			fos.write(buf, 0, size);
+			assert h.length == 44; // WAV标准，头部应该是44字节
+			// write header
+			fos.write(h, 0, h.length);
+			// write data stream
+			fis = new FileInputStream(src);
 			size = fis.read(buf);
+			while (size != -1) {
+				fos.write(buf, 0, size);
+				size = fis.read(buf);
+			}
+		} catch (Exception e) {
+
+		} finally {
+			try {
+				if (fis != null) {
+					fis.close();
+				}
+				if (fos != null) {
+					fos.close();
+				}
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
-		fis.close();
-		fos.close();
+
 		System.out.println("Convert OK!");
 	}
 
-
 }
 
-//WavHeader辅助类。用于生成头部信息。
+// WavHeader辅助类。用于生成头部信息。
 class WaveHeader {
 	public final char fileID[] = { 'R', 'I', 'F', 'F' };
 	public int fileLength;
@@ -93,7 +122,8 @@ class WaveHeader {
 		return r;
 	}
 
-	private void WriteShort(ByteArrayOutputStream bos, int s) throws IOException {
+	private void WriteShort(ByteArrayOutputStream bos, int s)
+			throws IOException {
 		byte[] mybyte = new byte[2];
 		mybyte[1] = (byte) ((s << 16) >> 24);
 		mybyte[0] = (byte) ((s << 24) >> 24);
@@ -115,10 +145,5 @@ class WaveHeader {
 			bos.write(c);
 		}
 	}
-	
-	
-	
-	
-	
-	
+
 }

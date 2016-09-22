@@ -16,7 +16,6 @@ import java.util.Date;
 public class PublicUtils {
 
 	public static void deletefile(String filepath) {
-
 		File registerwav = new File(filepath);
 		if (registerwav.exists()) {
 			registerwav.delete();

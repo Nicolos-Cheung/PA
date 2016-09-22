@@ -7,9 +7,6 @@ import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebFilter;
-import javax.servlet.annotation.WebInitParam;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,17 +18,14 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.pingan.constant.Constant;
-import com.pingan.dao.CustomerDao;
-import com.pingan.dao.impl.MongoDbDaoImpl;
-import com.pingan.dao.impl.MysqlDaoImpl;
-import com.pingan.domain.Ivector;
-import com.pingan.domain.IvectorV;
+import com.pingan.domain.PCMObject;
 import com.pingan.domain.PCMResponseObject;
-import com.pingan.service.MongoDBService;
-import com.pingan.service.impl.MongoDBServiceImpl;
+import com.pingan.service.PCMMongoDBService;
+import com.pingan.service.impl.PCMMongoDBServiceImpl;
 import com.pingan.utils.IvectorUtils;
 import com.pingan.utils.PCMUtil;
 import com.pingan.utils.PublicUtils;
+import com.sun.medialib.mlib.Constants;
 
 /**
  * 处理register请求的servlet
@@ -41,7 +35,7 @@ import com.pingan.utils.PublicUtils;
 public class PCMRegisterServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private MongoDBService service;
+	private PCMMongoDBService service = new PCMMongoDBServiceImpl();
 	private File tempFile;
 
 	public void init(ServletConfig config) throws ServletException {
@@ -54,7 +48,7 @@ public class PCMRegisterServlet extends HttpServlet {
 
 	private void initDir() {
 		PublicUtils.mkDir(Constant.FILEPATH);
-		PublicUtils.mkDir(Constant.VOICEPATH);
+		PublicUtils.mkDir(Constant.PCMVOICEPATH);
 		PublicUtils.mkDir(Constant.TEMPPATH);
 	}
 
@@ -66,7 +60,7 @@ public class PCMRegisterServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String customer_id = ""; // 注册手机号
+		String user_id = ""; // 注册用户ID 唯一标识
 
 		response.setContentType("text/plain");
 		// 向客户端发送响应正文
@@ -98,42 +92,52 @@ public class PCMRegisterServlet extends HttpServlet {
 
 						String name = item.getFieldName();
 
-						if (name.equals("customer_id")) {
-							customer_id = item.getString();
-							System.out.println("customer_id:" + customer_id);
+						if (name.equals("user_id")) {
+							user_id = item.getString();
+							System.out.println("user_id:" + user_id);
 						}
 
 					} else {
-						// 文件
-						String uploadpath = Constant.VOICEPATH;
 
-						File pcmfile = processUploadedFile(item, customer_id,
-								uploadpath); // 处理上传文件
+						int firstdircode = user_id.hashCode() & 0xf;
+						int secondircode = (user_id.hashCode() >> 4) & 0xf;
+						String hashuploadpath = Constant.PCMVOICEPATH + "/"
+								+ firstdircode + "/" + secondircode;
 
-						String wavfilePath = Constant.VOICEPATH + "/"
-								+ customer_id + ".wav";
-						
+						File pcmfile = processUploadedFile(item, 
+								hashuploadpath); // 处理上传文件
+
+						String wavfilePath = hashuploadpath + "/" + user_id
+								+ ".wav";
+
 						File wavfile = new File(wavfilePath);
 
-//						PublicUtils.rawToWave(pcmfile, wavfile);
-						PCMUtil.convertAudioFiles(pcmfile.getAbsolutePath(), wavfilePath);
-						
+						// PublicUtils.rawToWave(pcmfile, wavfile);
+						PCMUtil.convertAudioFiles(pcmfile.getAbsolutePath(),
+								wavfilePath);
+
 						System.out.println(wavfilePath);
-						
+
 						List<String> ivectorList = IvectorUtils.KaldiToIvecter(
 								wavfilePath, Constant.TOOLPATH);
-						
-						System.out.println("----"+ivectorList.size());
-						
-
-//						PublicUtils.deletefile(pcmfile);
-//						PublicUtils.deletefile(wavfile);
 
 						String ivectorStr = IvectorUtils
 								.ListToString(ivectorList);
+						
+						if (Constant.IS_RETAIN_PCM_DATA) {
 
-						PCMResponseObject po = new PCMResponseObject(
-								customer_id, ivectorStr);
+							PCMObject pcmo = new PCMObject(user_id, ivectorStr,
+									wavfilePath, Constant.IVECTOR_VERSION, "");
+							service.register(pcmo);
+							
+						}else{
+							PublicUtils.deletefile(pcmfile);
+							PublicUtils.deletefile(wavfile);
+						}
+
+				
+						PCMResponseObject po = new PCMResponseObject(user_id,
+								ivectorStr);
 
 						outNet.print((JSONObject.fromObject(po)).toString());
 
@@ -152,10 +156,11 @@ public class PCMRegisterServlet extends HttpServlet {
 	 * 
 	 * @param item
 	 * @param customer_id
-	 * @param uploadpath  文件上传的目录
+	 * @param uploadpath
+	 *            文件上传的目录
 	 * @return 0成功 1上传非wav文件
 	 */
-	private File processUploadedFile(FileItem item, String customer_id,
+	private File processUploadedFile(FileItem item, 
 			String uploadpath) {
 
 		String filename = item.getName();
@@ -175,19 +180,10 @@ public class PCMRegisterServlet extends HttpServlet {
 				return null;
 			}
 
-			// int firstdircode = customer_id.hashCode() & 0xf;
-			// int secondircode = (customer_id.hashCode() >> 4) & 0xf;
-			//
-			// System.out.println("filename:====" + filename);
-			//
-			// String voicehashpath = Constant.VOICEPATH + "/" + firstdircode
-			// + "/" + secondircode;
-
 			PublicUtils.mkDir(uploadpath);
 			File uploadedFile = new File(uploadpath, filename);
 			item.write(uploadedFile);
-			
-			System.out.println("PCM_path"+uploadedFile.getAbsolutePath());
+			System.out.println("PCM_path" + uploadedFile.getAbsolutePath());
 
 			return uploadedFile;
 
