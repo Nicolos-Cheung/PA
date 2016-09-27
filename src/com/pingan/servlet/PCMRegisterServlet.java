@@ -18,14 +18,11 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 
 import com.pingan.constant.Constant;
-import com.pingan.domain.PCMObject;
-import com.pingan.domain.PCMResponseObject;
-import com.pingan.service.PCMMongoDBService;
-import com.pingan.service.impl.PCMMongoDBServiceImpl;
+import com.pingan.domain.PCMRequestBean;
+import com.pingan.service.PCMSerivce;
+import com.pingan.service.impl.PCMSerivceImpl;
 import com.pingan.utils.IvectorUtils;
-import com.pingan.utils.PCMUtil;
 import com.pingan.utils.PublicUtils;
-import com.sun.medialib.mlib.Constants;
 
 /**
  * 处理register请求的servlet
@@ -35,7 +32,7 @@ import com.sun.medialib.mlib.Constants;
 public class PCMRegisterServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private PCMMongoDBService service = new PCMMongoDBServiceImpl();
+	private PCMSerivce service = new PCMSerivceImpl();
 	private File tempFile;
 
 	public void init(ServletConfig config) throws ServletException {
@@ -43,13 +40,12 @@ public class PCMRegisterServlet extends HttpServlet {
 
 		initDir();
 		tempFile = new File(Constant.TEMPPATH);
-
 	}
 
 	private void initDir() {
-		PublicUtils.mkDir(Constant.FILEPATH);
-		PublicUtils.mkDir(Constant.PCMVOICEPATH);
+		PublicUtils.mkDir(Constant.PCMROOT);
 		PublicUtils.mkDir(Constant.TEMPPATH);
+		PublicUtils.mkDir(Constant.PCMTESTROOT);
 	}
 
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -60,7 +56,12 @@ public class PCMRegisterServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 
-		String user_id = ""; // 注册用户ID 唯一标识
+		PCMRequestBean pcb = new PCMRequestBean();
+		String userfilepath = "";
+		File pcmfile = null;
+		int statues_code = 0; // 0成功注册，1上传文件失败
+
+		System.out.println("PCMRegisterServlet Run!");
 
 		response.setContentType("text/plain");
 		// 向客户端发送响应正文
@@ -68,10 +69,7 @@ public class PCMRegisterServlet extends HttpServlet {
 
 		boolean isMultipart = ServletFileUpload.isMultipartContent(request);
 
-		System.out.println("PCMRegisterServlet Run!");
-
 		if (isMultipart) {
-			System.out.println("isMutipart=======true");
 
 			DiskFileItemFactory factory = new DiskFileItemFactory();
 			factory.setSizeThreshold(8 * 1024); // 设置缓冲区大小为8K
@@ -85,68 +83,96 @@ public class PCMRegisterServlet extends HttpServlet {
 			try {
 
 				List<FileItem> items = upload.parseRequest(request);
+
 				for (FileItem item : items) {
 					if (item.isFormField()) {
-						// 非文件参数
-						// processFormField(item, outNet); // 处理普通的表单域
 
+						// 表单非文件数据
 						String name = item.getFieldName();
-
 						if (name.equals("user_id")) {
-							user_id = item.getString();
-							System.out.println("user_id:" + user_id);
+							pcb.setUser_id(item.getString());
 						}
+						if (name.equals("person_id")) {
+							pcb.setPerson_id(item.getString());
+						}
+						if (name.equals("telnum")) {
+							pcb.setTelnum(item.getString());
+						}
+						if (name.equals("source")) {
+							pcb.setSource(item.getString());
+						}
+						if (name.equals("policy_number")) {
+							pcb.setPolicy_number(item.getString());
+						}
+						if (name.equals("nas_dir")) {
+							pcb.setNas_dir(item.getString());
+						}
+						if (name.equals("response_num")) {
+							pcb.setResponse_num(item.getString());
+						}
+
+						pcb.setRegister_date(PublicUtils.getDetailData());
 
 					} else {
 
-						int firstdircode = user_id.hashCode() & 0xf;
-						int secondircode = (user_id.hashCode() >> 4) & 0xf;
-						String hashuploadpath = Constant.PCMVOICEPATH + "/"
-								+ firstdircode + "/" + secondircode;
+						if (service.IsUserExist(pcb.getPerson_id())) {
+							statues_code += 4;
+						} else {
+							// 根据userid 和根目录 得到用户的文件目录
+							userfilepath = PublicUtils.getUserFilePath(
+									pcb.getPerson_id(), Constant.PCMROOT);
+							PublicUtils.mkDir(userfilepath);
 
-						File pcmfile = processUploadedFile(item, 
-								hashuploadpath); // 处理上传文件
+							pcmfile = processUploadedFile(item,
+									pcb.getPerson_id(), userfilepath, "pcm"); // 处理上传文件
 
-						String wavfilePath = hashuploadpath + "/" + user_id
-								+ ".wav";
+							if (pcmfile == null) {
+								statues_code += 1;
+							}
 
-						File wavfile = new File(wavfilePath);
+							pcb.setRegister_voice_path(pcmfile
+									.getAbsolutePath());
 
-						// PublicUtils.rawToWave(pcmfile, wavfile);
-						PCMUtil.convertAudioFiles(pcmfile.getAbsolutePath(),
-								wavfilePath);
-
-						System.out.println(wavfilePath);
-
-						List<String> ivectorList = IvectorUtils.KaldiToIvecter(
-								wavfilePath, Constant.TOOLPATH);
-
-						String ivectorStr = IvectorUtils
-								.ListToString(ivectorList);
-						
-						if (Constant.IS_RETAIN_PCM_DATA) {
-
-							PCMObject pcmo = new PCMObject(user_id, ivectorStr,
-									wavfilePath, Constant.IVECTOR_VERSION, "");
-							service.register(pcmo);
-							
-						}else{
-							PublicUtils.deletefile(pcmfile);
-							PublicUtils.deletefile(wavfile);
 						}
-
-				
-						PCMResponseObject po = new PCMResponseObject(user_id,
-								ivectorStr);
-
-						outNet.print((JSONObject.fromObject(po)).toString());
 
 					}
 				}
-				outNet.close();
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+		}
+
+		// 进行注册
+
+		System.out.println("register...." + statues_code);
+
+		if (statues_code<=0) {
+			List<String> ivectorList = IvectorUtils.KaldiToPcmIvecter(
+					pcmfile.getAbsolutePath(), Constant.PCMTOOLPATH);
+
+			if (null == ivectorList && ivectorList.size() == 0) {
+				statues_code += 2; // ivector计算出错
+			} else if (statues_code == 0) {
+				String ivectorPath = IvectorUtils.ListToFile_Return_FilePath2(
+						ivectorList, userfilepath, PublicUtils.getFileName(
+								"register", pcb.getPerson_id(), "ivector"));
+
+				pcb.setAvailable("1");
+				pcb.setIvector_path(ivectorPath);
+				pcb.setIvector_version(Constant.IVECTOR_VERSION);
+
+				service.register(pcb);
+			}
+		}
+		System.out.println(pcb.toString());
+
+		JSONObject json = new JSONObject();
+		json.put("response_num", pcb.getResponse_num());
+		json.put("statues_code", statues_code); // 1上传失败 2ivector计算出错 4用户已注册
+		outNet.print(json.toString());
+		if (outNet != null) {
+			outNet.close();
 		}
 
 	}
@@ -160,8 +186,8 @@ public class PCMRegisterServlet extends HttpServlet {
 	 *            文件上传的目录
 	 * @return 0成功 1上传非wav文件
 	 */
-	private File processUploadedFile(FileItem item, 
-			String uploadpath) {
+	private File processUploadedFile(FileItem item, String user_id,
+			String uploadpath, String filetype) {
 
 		String filename = item.getName();
 
@@ -174,14 +200,15 @@ public class PCMRegisterServlet extends HttpServlet {
 			}
 
 			String[] split = filename.split("\\.");
-			String filetype = split[split.length - 1];
-			if (!filetype.equals("pcm")) {
+			String filetype1 = split[split.length - 1];
+			if (!filetype1.equals("pcm")) {
 				System.out.println("Not a PCM file!");
 				return null;
 			}
 
 			PublicUtils.mkDir(uploadpath);
-			File uploadedFile = new File(uploadpath, filename);
+			File uploadedFile = new File(uploadpath, PublicUtils.getFileName(
+					"register", user_id, filetype));
 			item.write(uploadedFile);
 			System.out.println("PCM_path" + uploadedFile.getAbsolutePath());
 

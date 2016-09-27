@@ -9,43 +9,38 @@ import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import com.pingan.constant.Constant;
-import com.pingan.dao.CustomerDao;
-import com.pingan.dao.MongoDBDao;
-import com.pingan.dao.PCMMongoDbDao;
-import com.pingan.domain.Ivector;
-import com.pingan.domain.IvectorV;
-import com.pingan.domain.PCMObject;
+import com.pingan.dao.PCMdao;
+import com.pingan.domain.PCMRequestBean;
 
-/**
- * 
- * PCM——MongoDB的dao实现
- * @author Ning
- * 
- * 
- */
-public class PCMDaoImpl implements PCMMongoDbDao {
+public class PCMdaoImpl implements PCMdao {
 
 	public String mongodb_ip = Constant.MONGODB_IP;
 	public int mongodb_port = Constant.MONGODB_PORT;
 	public String DB_name = Constant.MONGODB_DB_NAME;
-	public String Collection_name = "pcm_user";
+	public String Collection_name = "pcm_users";
 
-	
 	@Override
-	public void register(PCMObject po) {
-
+	public boolean register(PCMRequestBean pcb) {
 		Mongo mongo = null;
 		try {
 			mongo = new Mongo(mongodb_ip, mongodb_port);
 			DB db = mongo.getDB(DB_name);
 			DBCollection collection = db.getCollection(Collection_name);
 			DBObject dbObject = new BasicDBObject();
-			dbObject.put("userid", po.getUserid());
-			dbObject.put("ivector", po.getIvector());
-			dbObject.put("version", po.getVersion());
-			dbObject.put("voicepath", po.getVoicepath());
-			dbObject.put("desc", po.getDesc());
+			dbObject.put("user_id", pcb.getUser_id());
+			dbObject.put("person_id", pcb.getPerson_id());
+			dbObject.put("telnum", pcb.getTelnum());
+			dbObject.put("source", pcb.getSource());
+			dbObject.put("policy_number", pcb.getPolicy_number());
+			dbObject.put("nas_dir", pcb.getNas_dir());
+			dbObject.put("response_num", pcb.getResponse_num());
+			dbObject.put("ivector_version", pcb.getIvector_version());
+			dbObject.put("register_voice_path", pcb.getRegister_voice_path());
+			dbObject.put("register_date", pcb.getRegister_date());
+			dbObject.put("ivector_path", pcb.getIvector_path());
+			dbObject.put("available", pcb.getAvailable());
 			collection.insert(dbObject);
+			return true;
 
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -54,31 +49,43 @@ public class PCMDaoImpl implements PCMMongoDbDao {
 				mongo.close();
 			}
 		}
+		return false;
 	}
 
 	@Override
-	public PCMObject find(String userid) {
+	public PCMRequestBean Query(String person_id) {
 
 		Mongo mongo = null;
-		PCMObject po = null;
+		PCMRequestBean pcb = null;
 		try {
-			po = new PCMObject();
 			mongo = new Mongo(mongodb_ip, mongodb_port);
 			DB db = mongo.getDB(DB_name);
 			DBCollection collection = db.getCollection(Collection_name);
+
 			DBObject searchQuery = new BasicDBObject();
-			searchQuery.put("userid", userid);
+			searchQuery.put("person_id", person_id);
 			DBCursor dbCursor = collection.find(searchQuery); // dbCursor
 																// 结果集(ResultSet)
+			pcb = new PCMRequestBean();
 			while (dbCursor.hasNext()) {
 				DBObject ob = dbCursor.next();
-				po.setUserid(ob.get("userid").toString().trim());
-				po.setIvector(ob.get("ivector").toString().trim());
-				po.setVersion(ob.get("version").toString().trim());
-				po.setVoicepath(ob.get("voicepath").toString().trim());
-				po.setDesc(ob.get("desc").toString().trim());
+				pcb.setUser_id(ob.get("user_id").toString().trim());
+				pcb.setPerson_id(ob.get("person_id").toString().trim());
+				pcb.setTelnum(ob.get("telnum").toString().trim());
+				pcb.setSource(ob.get("source").toString().trim());
+				pcb.setPolicy_number(ob.get("policy_number").toString().trim());
+				pcb.setNas_dir(ob.get("nas_dir").toString().trim());
+				pcb.setResponse_num(ob.get("response_num").toString().trim());
+				pcb.setIvector_version(ob.get("ivector_version").toString()
+						.trim());
+				pcb.setRegister_voice_path(ob.get("register_voice_path")
+						.toString().trim());
+				pcb.setRegister_date(ob.get("register_date").toString().trim());
+				pcb.setIvector_path(ob.get("ivector_path").toString().trim());
+				pcb.setAvailable(ob.get("available").toString().trim());
+
 			}
-			return po;
+			return pcb;
 
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -88,28 +95,30 @@ public class PCMDaoImpl implements PCMMongoDbDao {
 			}
 		}
 		return null;
-
 	}
 
 	@Override
-	public void update(PCMObject po) {
-
-		/**
-		 * 更新的条件 更新的内容的对象 如果没有符合条件的记录，是否新增一条记录 如果有条记录符合，是否全部被更新...
-		 */
+	public void update(PCMRequestBean pcb) {
 		Mongo mongo = null;
 		try {
 			mongo = new Mongo(mongodb_ip, mongodb_port);
 			DB db = mongo.getDB(DB_name);
 			DBObject queryObject = new BasicDBObject();
-			queryObject.put("userid", po.getUserid());
+			queryObject.put("user_id", pcb.getUser_id());
 			DBCollection collection = db.getCollection(Collection_name);
 			DBObject dbObject = new BasicDBObject();
-			dbObject.put("userid", po.getUserid());
-			dbObject.put("ivector", po.getIvector());
-			dbObject.put("version", po.getVersion());
-			dbObject.put("voicepath", po.getVoicepath());
-			dbObject.put("desc", po.getDesc());
+			dbObject.put("user_id", pcb.getUser_id());
+			dbObject.put("person_id", pcb.getPerson_id());
+			dbObject.put("telnum", pcb.getTelnum());
+			dbObject.put("source", pcb.getSource());
+			dbObject.put("policy_number", pcb.getPolicy_number());
+			dbObject.put("nas_dir", pcb.getNas_dir());
+			dbObject.put("response_num", pcb.getResponse_num());
+			dbObject.put("ivector_version", pcb.getIvector_version());
+			dbObject.put("register_voice_path", pcb.getRegister_voice_path());
+			dbObject.put("register_date", pcb.getRegister_date());
+			dbObject.put("ivector_path", pcb.getIvector_path());
+			dbObject.put("available", pcb.getAvailable());
 			collection.update(queryObject, dbObject);
 
 		} catch (UnknownHostException e) {
@@ -118,19 +127,18 @@ public class PCMDaoImpl implements PCMMongoDbDao {
 			if (mongo != null) {
 				mongo.close();
 			}
-			mongo = null;
 		}
 	}
 
 	@Override
-	public void remove(String userid) {
+	public void remoove(String person_id) {
 		Mongo mongo = null;
 		try {
 			mongo = new Mongo(mongodb_ip, mongodb_port);
 			DB db = mongo.getDB(DB_name);
 			DBCollection collection = db.getCollection(Collection_name);
 			DBObject dbObject = new BasicDBObject();
-			dbObject.put("userid", userid);
+			dbObject.put("person_id", person_id);
 			collection.remove(dbObject);
 
 		} catch (UnknownHostException e) {
@@ -141,4 +149,5 @@ public class PCMDaoImpl implements PCMMongoDbDao {
 			}
 		}
 	}
+
 }

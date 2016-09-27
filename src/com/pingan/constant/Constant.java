@@ -6,6 +6,11 @@ public interface Constant {
 	 * 工具路径
 	 */
 	public static final String TOOLPATH = "/home/pingandl/javaserver/tool";
+	
+	/**
+	 * 工具路径
+	 */
+	public static final String PCMTOOLPATH = "/home/pingandl/javaserver/pcmtool";
 
 	/**
 	 * 数据文件根目录
@@ -18,10 +23,16 @@ public interface Constant {
 	public static final String VOICEPATH = FILEPATH + "/voice";
 
 	/**
-	 * PCM上传注册语音文件的目录
+	 * PCM上传注册语音文件,和ivector的根目录
 	 */
-	public static final String PCMVOICEPATH = FILEPATH + "/pcm2wav";
-
+	public static final String PCMROOT = FILEPATH + "/pcm_dataroot";
+	
+	/**
+	 * PCM验证语音文件根目录
+	 */
+	public static final String PCMTESTROOT = FILEPATH + "/pcm_testdataroot";
+	
+	
 	/**
 	 * 是否保存PCM数据
 	 */

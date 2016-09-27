@@ -27,7 +27,39 @@ public class IvectorUtils {
 
 		String commond = toolpath + "/wav_ivector --config=" + toolpath
 				+ "/compute.conf " + filepath + " " + toolpath + "/final.ubm "
-				+ toolpath + "/final.ie";
+				+ toolpath + "/final.ie" + " " + toolpath + "/gmm.ubm";
+		try {
+			process = Runtime.getRuntime().exec(commond);
+			process.waitFor();
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					process.getInputStream()));
+			String line = "";
+			while ((line = input.readLine()) != null) {
+				processList.add(line);
+			}
+			input.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return processList;
+	}
+
+	/**
+	 * 
+	 * @param filepath
+	 *            wav路径
+	 * @param toolpath
+	 *            tool的路径
+	 * @return
+	 */
+	public static List<String> KaldiToPcmIvecter(String filepath,
+			String toolpath) {
+		Process process = null;
+		List<String> processList = new ArrayList<String>();
+
+		String commond = toolpath + "/wav_ivector_pcm --config=" + toolpath
+				+ "/compute.conf " + filepath + " " + toolpath + "/final.ubm "
+				+ toolpath + "/final.ie" + " " + toolpath + "/gmm.ubm";
 		try {
 			process = Runtime.getRuntime().exec(commond);
 			process.waitFor();
@@ -126,41 +158,119 @@ public class IvectorUtils {
 	 *            特征值文件名
 	 * @return
 	 */
-	public static String ListToFile_Return_FilePath(List<String> list, String path,
-			String filename) {
+	public static String ListToFile_Return_FilePath(List<String> list,
+			String path, String filename) {
+		FileOutputStream fos = null;
+		OutputStreamWriter osw = null;
 
 		StringBuffer bf = new StringBuffer();
-
 		if (list.size() == 0) {
 			return "";
 		}
-
 		Iterator<String> iter = list.iterator();
 		while (iter.hasNext()) {
 			bf.append(iter.next());
 		}
 		try {
-			FileOutputStream fos = new FileOutputStream(
-					new File(path, filename));
+			fos = new FileOutputStream(new File(path, filename));
 
-			OutputStreamWriter osw = new OutputStreamWriter(fos);
+			osw = new OutputStreamWriter(fos);
 
 			osw.write(bf.toString());
 
-			osw.close();
-			fos.close();
-
-			return path+"/"+filename+".ivector";
+			return path + "/" + filename + ".ivector";
 
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 
 		} catch (IOException e) {
 			e.printStackTrace();
+		} finally {
+
+			try {
+				if (osw != null) {
+					osw.close();
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				if (osw != null) {
+
+					fos.close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		return null;
+		return "";
 
 	}
+
+	/**
+	 * 
+	 * @param list
+	 * @param path
+	 *            特征值存放的路径
+	 * @param filename
+	 *            特征值文件名
+	 * @return
+	 */
+	public static String ListToFile_Return_FilePath2(List<String> list,
+			String path, String filename) {
+		FileOutputStream fos = null;
+		OutputStreamWriter osw = null;
+
+		StringBuffer bf = new StringBuffer();
+		if (list.size() == 0) {
+			return "";
+		}
+		Iterator<String> iter = list.iterator();
+		while (iter.hasNext()) {
+			bf.append(iter.next());
+		}
+		try {
+			fos = new FileOutputStream(new File(path, filename));
+
+			osw = new OutputStreamWriter(fos);
+
+			osw.write(bf.toString());
+
+			return path + "/" + filename;
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+
+			try {
+				if (osw != null) {
+					osw.close();
+				}
+
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				if (osw != null) {
+
+					fos.close();
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return "";
+
+	}
+
 	/**
 	 * 
 	 * @param list
@@ -205,7 +315,6 @@ public class IvectorUtils {
 		return false;
 
 	}
-	
 
 	/**
 	 * 

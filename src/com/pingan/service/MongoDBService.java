@@ -9,6 +9,7 @@ public interface MongoDBService {
 	 */
 	void register(IvectorV iv);
 	
+	
 	/**
 	 * 查询特征文件路径
 	 */

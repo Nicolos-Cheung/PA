@@ -96,11 +96,10 @@ public class RegisterServlet extends HttpServlet {
 						// processFormField(item, outNet); // 处理普通的表单域
 
 						String name = item.getFieldName();
-
+						
 						if (name.equals("tel")) {
 							telnum = item.getString();
 							System.out.println("tel:" + telnum);
-
 						}
 
 					} else {
