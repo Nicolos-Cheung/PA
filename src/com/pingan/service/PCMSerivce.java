@@ -41,6 +41,9 @@ public interface PCMSerivce {
 	 * 
 	 * @param iv
 	 */
-	void update(PCMRequestBean pcb);
+	boolean update(PCMRequestBean pcb);
+
+	
+	String getRegisterRootPath(String person_id);
 
 }

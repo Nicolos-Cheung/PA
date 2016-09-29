@@ -140,7 +140,7 @@ public class ValidationServlet2 extends HttpServlet {
 
 			System.out.println("validation_result=" + score);
 
-			int threshold = 0;
+			float threshold = 0;
 			switch (Constant.SCORE_MODE) {
 			case PLDA:
 				threshold = Constant.PLDA_THRESHOLD;

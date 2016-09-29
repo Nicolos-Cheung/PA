@@ -10,10 +10,22 @@ public class PCMRequestBean {
 	private String nas_dir;
 	private String response_num;
 	private String ivector_version;
-	private String register_voice_path;
+	private String register_voice_path; //音频文件路径
 	private String register_date;
 	private String ivector_path;
 	private String available; // 1用户可用 0用户不可用
+	private String user_root_path;
+
+	public String getUser_root_path() {
+		return user_root_path;
+	}
+
+	public void setUser_root_path(String user_root_path) {
+		this.user_root_path = user_root_path;
+	}
+
+	public PCMRequestBean() {
+	}
 
 	public String getAvailable() {
 		return available;
@@ -49,10 +61,6 @@ public class PCMRequestBean {
 
 	public String getTelnum() {
 		return telnum;
-	}
-
-	public PCMRequestBean() {
-
 	}
 
 	public void setTelnum(String telnum) {
@@ -115,6 +123,7 @@ public class PCMRequestBean {
 		this.register_date = register_date;
 	}
 
+
 	@Override
 	public String toString() {
 		return "PCMRequestBean [user_id=" + user_id + ", person_id="
@@ -124,7 +133,93 @@ public class PCMRequestBean {
 				+ ivector_version + ", register_voice_path="
 				+ register_voice_path + ", register_date=" + register_date
 				+ ", ivector_path=" + ivector_path + ", available=" + available
-				+ "]";
+				+ ", user_root_path=" + user_root_path + "]";
+	}
+
+	/**
+	 * 检查对象本事是否可以用于注册
+	 * 
+	 * @return
+	 */
+	public boolean isAbleToRegister() {
+
+		if (null == person_id || "".equals(person_id)) {
+			return false;
+		}
+		if (null == source || "".equals(source)) {
+			return false;
+		}
+		if (null == register_voice_path || "".equals(register_voice_path)) {
+			return false;
+		}
+		if (null == user_root_path || "".equals(user_root_path)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 检查是否可以更新
+	 */
+	public boolean isAbleToUpdate() {
+
+		if (null == person_id || "".equals(person_id)) {
+			return false;
+		}
+		if (null == user_root_path || "".equals(user_root_path)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 检查是否可以验证
+	 * 
+	 * @return
+	 */
+	public boolean isAbleToVali() {
+
+		if (null == person_id || "".equals(person_id)) {
+
+			return false;
+		}
+		if (null == ivector_path || "".equals(ivector_path)) {
+			return false;
+		}
+		if (null == available || "".equals(available)) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 检查是否可删除
+	 */
+	public boolean isAbleToCancel() {
+		if (null == person_id || "".equals(person_id)) {
+			return false;
+		}
+		if (null == available || "".equals(available)) {
+			return false;
+		} else if ("1".equals(available)) {
+			return true;
+		}
+		return false;
+	}
+
+	public boolean isExist() {
+
+		if (null == person_id || "".equals(person_id)) {
+			return false;
+		}
+		if (null == available || "".equals(available)) {
+			return false;
+		} else if ("1".equals(available)) {
+			return true;
+		} else {
+			return false;
+		}
+
 	}
 
 }

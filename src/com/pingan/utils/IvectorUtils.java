@@ -151,6 +151,43 @@ public class IvectorUtils {
 
 	/**
 	 * 
+	 * @param registerdir
+	 *            注册特征值文件路径
+	 * @param testdir
+	 *            测试生成的特征值文件路径
+	 * @param toolpath
+	 * @return
+	 */
+	public static double KaldiPLDAscore2(String registerdir, String testdir,
+			String toolpath) {
+		Process process = null;
+		List<String> processList = new ArrayList<String>();
+		String commond = toolpath + "/wav_score_plda3 " + registerdir + " "
+				+ testdir + " " + toolpath + "/plda " + toolpath
+				+ "/transform.mat";
+		try {
+			process = Runtime.getRuntime().exec(commond);
+			process.waitFor();
+			BufferedReader input = new BufferedReader(new InputStreamReader(
+					process.getInputStream()));
+			String line = "";
+			while ((line = input.readLine()) != null) {
+				processList.add(line);
+			}
+			input.close();
+
+			String string = processList.get(0).trim();
+			if (processList != null && processList.size() > 0) {
+				return Double.parseDouble(string);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
+
+	/**
+	 * 
 	 * @param list
 	 * @param path
 	 *            特征值存放的路径

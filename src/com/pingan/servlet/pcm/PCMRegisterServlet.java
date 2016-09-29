@@ -1,9 +1,11 @@
-package com.pingan.servlet;
+package com.pingan.servlet.pcm;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -32,13 +34,14 @@ import com.pingan.utils.PublicUtils;
 public class PCMRegisterServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
-	private PCMSerivce service = new PCMSerivceImpl();
+	private PCMSerivceImpl service;
 	private File tempFile;
 
 	public void init(ServletConfig config) throws ServletException {
 		super.init(config);
 
 		initDir();
+		service = new PCMSerivceImpl();
 		tempFile = new File(Constant.TEMPPATH);
 	}
 
@@ -58,7 +61,6 @@ public class PCMRegisterServlet extends HttpServlet {
 
 		PCMRequestBean pcb = new PCMRequestBean();
 		String userfilepath = "";
-		File pcmfile = null;
 		int statues_code = 0; // 0成功注册，1上传文件失败
 
 		System.out.println("PCMRegisterServlet Run!");
@@ -107,39 +109,39 @@ public class PCMRegisterServlet extends HttpServlet {
 						if (name.equals("nas_dir")) {
 							pcb.setNas_dir(item.getString());
 						}
-						if (name.equals("response_num")) {
-							pcb.setResponse_num(item.getString());
-						}
 
 						pcb.setRegister_date(PublicUtils.getDetailData());
 
 					} else {
-
-						if (service.IsUserExist(pcb.getPerson_id())) {
+						
+						
+						if (pcb.getPerson_id()==null||"".equals(pcb.getPerson_id())||service.IsUserExist(pcb.getPerson_id())) {
 							statues_code += 4;
 						} else {
 							// 根据userid 和根目录 得到用户的文件目录
 							userfilepath = PublicUtils.getUserFilePath(
 									pcb.getPerson_id(), Constant.PCMROOT);
+
+							pcb.setUser_root_path(userfilepath);
+
 							PublicUtils.mkDir(userfilepath);
 
-							pcmfile = processUploadedFile(item,
+							File pcmfile = processUploadedFile(item,
 									pcb.getPerson_id(), userfilepath, "pcm"); // 处理上传文件
 
 							if (pcmfile == null) {
 								statues_code += 1;
+							} else {
+								System.out.println(pcmfile.getAbsolutePath());
+								pcb.setRegister_voice_path(pcmfile
+										.getAbsolutePath());
 							}
-
-							pcb.setRegister_voice_path(pcmfile
-									.getAbsolutePath());
-
 						}
-
 					}
 				}
 
 			} catch (Exception e) {
-				e.printStackTrace();
+				// e.printStackTrace();
 			}
 		}
 
@@ -147,9 +149,9 @@ public class PCMRegisterServlet extends HttpServlet {
 
 		System.out.println("register...." + statues_code);
 
-		if (statues_code<=0) {
+		if (statues_code <= 0) {
 			List<String> ivectorList = IvectorUtils.KaldiToPcmIvecter(
-					pcmfile.getAbsolutePath(), Constant.PCMTOOLPATH);
+					pcb.getRegister_voice_path(), Constant.PCMTOOLPATH);
 
 			if (null == ivectorList && ivectorList.size() == 0) {
 				statues_code += 2; // ivector计算出错
@@ -158,14 +160,20 @@ public class PCMRegisterServlet extends HttpServlet {
 						ivectorList, userfilepath, PublicUtils.getFileName(
 								"register", pcb.getPerson_id(), "ivector"));
 
-				pcb.setAvailable("1");
+				pcb.setAvailable("1"); // 标志位
 				pcb.setIvector_path(ivectorPath);
 				pcb.setIvector_version(Constant.IVECTOR_VERSION);
+				
+				pcb.toString();
+				if (pcb.isAbleToRegister()) {
+					service.register(pcb);
+				} else {
+					statues_code += 8;
+				}
 
-				service.register(pcb);
 			}
 		}
-		System.out.println(pcb.toString());
+		
 
 		JSONObject json = new JSONObject();
 		json.put("response_num", pcb.getResponse_num());

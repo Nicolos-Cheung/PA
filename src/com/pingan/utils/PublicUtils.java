@@ -62,7 +62,6 @@ public class PublicUtils {
 		return true;
 	}
 
-
 	private static byte[] get16BitPcm(short[] data) {
 		byte[] resultData = new byte[2 * data.length];
 		int iter = 0;
@@ -194,6 +193,28 @@ public class PublicUtils {
 	}
 
 	/**
+	 * 根据用户名，和文件根目录，返回该用户名在根目录下的hashpath
+	 * 
+	 * @param user_id
+	 * @param root
+	 * @return /Users/ning/2/3/20160301_userid
+	 */
+	public static String getConstantUserFilePath(String user_id, String root) {
+
+		StringBuffer sb = new StringBuffer();
+		sb.append(root);
+		sb.append("/");
+		sb.append(user_id.hashCode() & 0xf);
+		sb.append("/");
+		sb.append((user_id.hashCode() >> 4) & 0xf);
+		sb.append("/");
+		sb.append(user_id);
+		sb.append("_");
+		sb.append("test");
+		return sb.toString();
+	}
+
+	/**
 	 * 获取随机文件名
 	 * 
 	 * @param user_id
@@ -209,7 +230,31 @@ public class PublicUtils {
 		sb.append(usage);
 		sb.append("_");
 		sb.append(PublicUtils.getDate());
-		
+
+		sb.append("_");
+		sb.append(user_id);
+		sb.append(".");
+		sb.append(filetype);
+		return sb.toString();
+	}
+
+	/**
+	 * 获取随机文件名
+	 * 
+	 * @param user_id
+	 *            用户ID
+	 * @param filetype
+	 *            文件类型
+	 * @return register_uuid_userid.pcm
+	 */
+	public static String getFileNameWithUUID(String usage, String user_id,
+			String filetype) {
+
+		StringBuffer sb = new StringBuffer();
+		sb.append(usage);
+		sb.append("_");
+		sb.append(UUID.randomUUID().toString());
+
 		sb.append("_");
 		sb.append(user_id);
 		sb.append(".");
@@ -223,7 +268,7 @@ public class PublicUtils {
 	 * @param filename
 	 * @param user_id
 	 * @param root
-	 * @return /Users/ning/2/3/register_userid_UUID.pcm
+	 * @return /Users/ning/2/3/filename.pcm
 	 */
 	public static String getFilePath(String filename, String user_id,
 			String root) {
@@ -236,9 +281,17 @@ public class PublicUtils {
 	}
 
 	public static String getDetailData() {
-		
+
 		Date date = new Date();
 		DateFormat dateFormat = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
 		return dateFormat.format(date);
+	}
+
+	public static boolean strIsNotNull(String str) {
+		if (null == str || "".equals(str)) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 }
